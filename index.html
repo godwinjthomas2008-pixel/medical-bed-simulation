@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Bed & Hoist Simulation</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f2f5; margin: 0; padding: 20px; }
+        .canvas-container { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; }
+        svg { background: #fafafa; border: 1px solid #ddd; border-radius: 8px; margin-top: 15px; }
+        .controls { margin-top: 20px; width: 100%; display: flex; flex-direction: column; gap: 15px; }
+        .control-group { display: flex; justify-content: space-between; align-items: center; }
+        label { font-weight: bold; font-size: 14px; color: #333; }
+        input[type="range"] { width: 60%; }
+    </style>
+</head>
+<body>
+
+<div class="canvas-container">
+    <h2>Bed Mobility & Handle Simulation</h2>
+    <p style="color: #666; font-size: 13px; margin: 0;">Adjust sliders to test upper-body pull and section articulation angles.</p>
+    
+    <!-- Simulation Screen -->
+    <svg id="simCanvas" width="450" height="280" viewBox="0 0 450 280">
+        <!-- Floor & Ground Base -->
+        <line x1="20" y1="250" x2="430" y2="250" stroke="#999" stroke-width="3"/>
+        <rect x="80" y="210" width="220" height="40" fill="#ddd" rx="4"/>
+        
+        <!-- Overhead Gantry Frame & Hoist Handle -->
+        <path d="M 90,210 L 90,40 L 220,40" fill="none" stroke="#555" stroke-width="6" stroke-linecap="round"/>
+        <line id="hoistStrap" x1="220" y1="40" x2="220" y2="100" stroke="#333" stroke-width="3"/>
+        <circle id="hoistHandle" cx="220" cy="100" r="12" fill="none" stroke="#e67e22" stroke-width="4"/>
+
+        <!-- Moving Bed Pivot Sections -->
+        <g transform="translate(140, 210)">
+            <!-- Head Section Group -->
+            <g id="headSection">
+                <line x1="0" y1="0" x2="-70" y2="0" stroke="#2980b9" stroke-width="8" stroke-linecap="round"/>
+                <circle cx="-60" cy="-25" r="8" fill="#e74c3c" id="patientHead"/> <!-- Simple User Icon Head -->
+                <line x1="0" y1="0" x2="-50" y2="-20" stroke="#34495e" stroke-width="4"/> <!-- Torso -->
+            </g>
+            <!-- Fixed Mid Section -->
+            <line x1="0" y1="0" x2="50" y2="0" stroke="#2c3e50" stroke-width="8"/>
+            <!-- Foot Section Group -->
+            <g id="footSection" transform="translate(50, 0)">
+                <line id="thighLine" x1="0" y1="0" x2="50" y2="0" stroke="#2980b9" stroke-width="8" stroke-linecap="round"/>
+                <line id="calfLine" x1="50" y1="0" x2="90" y2="0" stroke="#2980b9" stroke-width="8" stroke-linecap="round"/>
+            </g>
+        </g>
+    </svg>
+
+    <!-- Interactive Mechanical Sliders -->
+    <div class="controls">
+        <div class="control-group">
+            <label>Head Angle (<span id="headVal">0</span>°)</label>
+            <input type="range" id="headSlider" min="0" max="70" value="0">
+        </div>
+        <div class="control-group">
+            <label>Foot/Knee Angle (<span id="footVal">0</span>°)</label>
+            <input type="range" id="footSlider" min="0" max="40" value="0">
+        </div>
+        <div class="control-group">
+            <label>Handle Height (<span id="handleVal">100</span>px)</label>
+            <input type="range" id="handleSlider" min="60" max="150" value="100">
+        </div>
+    </div>
+</div>
+
+<script>
+    const headSlider = document.getElementById('headSlider');
+    const footSlider = document.getElementById('footSlider');
+    const handleSlider = document.getElementById('handleSlider');
+
+    function updateSimulation() {
+        const headDeg = headSlider.value;
+        const footDeg = footSlider.value;
+        const handleY = handleSlider.value;
+
+        // Apply Rotations to SVG Elements
+        document.getElementById('headSection').setAttribute('transform', `rotate(${-headDeg})`);
+        document.getElementById('headVal').innerText = headDeg;
+
+        // Foot Break Calculations
+        document.getElementById('footVal').innerText = footDeg;
+        const thighAngle = -footDeg;
+        const calfAngle = footDeg * 1.2; 
+        document.getElementById('thighLine').setAttribute('transform', `rotate(${thighAngle})`);
+        document.getElementById('calfLine').setAttribute('transform', `translate(50,0) rotate(${calfAngle})`);
+
+        // Handle Height Adjustments
+        document.getElementById('hoistStrap').setAttribute('y2', handleY);
+        document.getElementById('hoistHandle').setAttribute('cy', handleY);
+        document.getElementById('handleVal').innerText = handleY;
+    }
+
+    headSlider.addEventListener('input', updateSimulation);
+    footSlider.addEventListener('input', updateSimulation);
+    handleSlider.addEventListener('input', updateSimulation);
+    updateSimulation();
+</script>
+
+</body>
+</html>
